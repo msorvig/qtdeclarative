@@ -19,12 +19,15 @@
 #include <private/qtqmlglobal_p.h>
 #include <private/qqmlimport_p.h>
 #include <private/qqmltypeloaderqmldircontent_p.h>
+#include <private/qqmlrefcount_p.h>
 
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qplugin.h>
 #include <QtCore/qtyperevision.h>
 
 QT_BEGIN_NAMESPACE
+
+class QQmlPluginLoadBlob;
 
 class QQmlPluginImporter
 {
@@ -49,8 +52,23 @@ public:
     QTypeRevision importStaticPlugin(QObject *instance, const QString &pluginId);
     QTypeRevision importPlugins();
 
+    // Async variant that returns a blob for dependency tracking
+    QQmlRefPointer<QQmlPluginLoadBlob> importPluginsAsync();
+
     Q_AUTOTEST_EXPORT static bool removePlugin(const QString &pluginId);
     Q_AUTOTEST_EXPORT static QStringList plugins();
+
+    // Make resolvePlugin accessible for the plugin load blob
+    QString resolvePluginPath(const QString &qmldirPluginPath, const QString &baseName) const
+    {
+        return const_cast<QQmlPluginImporter *>(this)->resolvePlugin(qmldirPluginPath, baseName);
+    }
+
+    // Accessors for plugin load blob
+    const QString &importUri() const { return uri; }
+    QTypeRevision importVersion() const { return version; }
+    const QString &qmldirDirectory() const { return qmldirPath; }
+    QString typeNamespace() const { return qmldir ? qmldir->typeNamespace() : QString(); }
 
 private:
     static QString truncateToDirectory(const QString &qmldirFilePath);

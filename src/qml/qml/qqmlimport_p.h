@@ -17,6 +17,7 @@
 
 #include <private/qfieldlist_p.h>
 #include <private/qqmldirparser_p.h>
+#include <private/qqmlrefcount_p.h>
 #include <private/qqmltype_p.h>
 #include <private/qstringhash_p.h>
 
@@ -38,6 +39,7 @@ QT_BEGIN_NAMESPACE
 class QQmlTypeNameCache;
 class QDir;
 class QQmlImportNamespace;
+class QQmlPluginLoadBlob;
 class QQmlTypeLoader;
 class QQmlTypeLoaderQmldirContent;
 class QQmlTypeLoader;
@@ -279,6 +281,11 @@ private:
     QQmlImportNamespace *findQualifiedNamespace(const QHashedStringRef &) const;
 
     QTypeRevision importExtension(
+            QQmlTypeLoader *typeLoader, const QString &uri, QTypeRevision version,
+            const QQmlTypeLoaderQmldirContent *qmldir, QList<QQmlError> *errors);
+
+    // Async variant that returns a plugin blob for dependency tracking
+    QQmlRefPointer<QQmlPluginLoadBlob> importExtensionAsync(
             QQmlTypeLoader *typeLoader, const QString &uri, QTypeRevision version,
             const QQmlTypeLoaderQmldirContent *qmldir, QList<QQmlError> *errors);
 

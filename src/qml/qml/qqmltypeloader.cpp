@@ -5,6 +5,7 @@
 #include <private/qqmltypeloader_p.h>
 
 #include <private/qqmldirdata_p.h>
+#include <private/qqmlpluginloadblob_p.h>
 #include <private/qqmlprofiler_p.h>
 #include <private/qqmlscriptblob_p.h>
 #include <private/qqmlscriptdata_p.h>
@@ -892,6 +893,19 @@ bool QQmlTypeLoader::Blob::updateQmldir(const QQmlRefPointer<QQmlQmldirData> &da
     QString qmldirUrl = qmldirIdentifier.left(qmldirIdentifier.lastIndexOf(QLatin1Char('/')) + 1);
 
     typeLoader()->setQmldirContent(qmldirIdentifier, data->content());
+
+    // Try async plugin loading first
+    const QQmlTypeLoaderQmldirContent qmldirContent = typeLoader()->qmldirContent(qmldirIdentifier);
+    if (qmldirContent.hasContent() && !qmldirContent.plugins().isEmpty()) {
+        QQmlRefPointer<QQmlPluginLoadBlob> pluginBlob = m_importCache->importExtensionAsync(
+                typeLoader(), import->uri, import->version, &qmldirContent, errors);
+        if (pluginBlob) {
+            // Plugin loading started asynchronously - add as dependency
+            addDependency(pluginBlob.data());
+            // Continue with updateQmldirContent when plugin loading completes
+            // The plugin importer tracks what's loaded, so the sync call will be quick
+        }
+    }
 
     const QTypeRevision version = m_importCache->updateQmldirContent(
             typeLoader(), import->uri, import->version, import->qualifier, qmldirIdentifier,

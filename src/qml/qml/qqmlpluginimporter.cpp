@@ -3,6 +3,7 @@
 // Qt-Security score:critical reason:execute-external-code
 
 #include "qqmlpluginimporter_p.h"
+#include "qqmlpluginloadblob_p.h"
 #include "qqmlimport_p.h"
 
 #include <private/qqmlextensionplugin_p.h>
@@ -576,6 +577,54 @@ QString QQmlPluginImporter::resolvePlugin(const QString &qmldirPluginPath, const
                          << " file does not exist";
 
     return QString();
+}
+
+QQmlRefPointer<QQmlPluginLoadBlob> QQmlPluginImporter::importPluginsAsync()
+{
+    const auto qmldirPlugins = qmldir->plugins();
+    const int qmldirPluginCount = qmldirPlugins.size();
+
+    if (qmldirPluginCount == 0) {
+        // No plugins to load
+        return nullptr;
+    }
+
+    const bool canUseUris = qmldirPluginCount == 1
+            && qmldirPath.endsWith(u'/' + QString(uri).replace(u'.', u'/'));
+    const QString moduleId = canUseUris ? uri : qmldir->qmldirLocation();
+
+    if (typeLoader->isModulePluginProcessingDone(moduleId)) {
+        // Already processed
+        return nullptr;
+    }
+
+    // Create a URL for the blob (use qmldir location as base)
+    QUrl blobUrl = QUrl::fromLocalFile(qmldir->qmldirLocation());
+    blobUrl.setFragment(QStringLiteral("plugins"));
+
+    // Create the plugin load blob
+    QQmlRefPointer<QQmlPluginLoadBlob> blob(
+        new QQmlPluginLoadBlob(blobUrl, typeLoader));
+
+    // Configure the blob with import info
+    blob->setImportInfo(uri, version, qmldirPath, qmldir->typeNamespace());
+
+    // Add all plugins to the blob
+    for (const QQmlDirParser::Plugin &plugin : qmldirPlugins) {
+        const QString resolvedFilePath = resolvePlugin(plugin.path, plugin.name);
+        const QString pluginId = canUseUris ? uri
+            : (resolvedFilePath.isEmpty() ? QString() : QFileInfo(resolvedFilePath).absoluteFilePath());
+
+        blob->addPlugin(resolvedFilePath, pluginId, plugin.optional);
+    }
+
+    // Mark module as being processed to prevent duplicate loading
+    typeLoader->setModulePluginProcessingDone(moduleId);
+
+    // Start the async loading
+    blob->startPluginLoad();
+
+    return blob;
 }
 
 QTypeRevision QQmlPluginImporter::importPlugins() {

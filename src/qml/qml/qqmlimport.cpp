@@ -20,6 +20,7 @@
 #include <private/qqmltypemodule_p.h>
 #include <private/qqmltypeloaderqmldircontent_p.h>
 #include <private/qqmlpluginimporter_p.h>
+#include <private/qqmlpluginloadblob_p.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qjsonarray.h>
 #include <QtQml/private/qqmltype_p_p.h>
@@ -946,6 +947,37 @@ QTypeRevision QQmlImports::importExtension(
 
     QQmlPluginImporter importer(uri, version, qmldir, typeLoader, errors);
     return importer.importPlugins();
+}
+
+/*
+Import an extension asynchronously, returning a blob that can be used as a dependency.
+*/
+QQmlRefPointer<QQmlPluginLoadBlob> QQmlImports::importExtensionAsync(
+        QQmlTypeLoader *typeLoader, const QString &uri, QTypeRevision version,
+        const QQmlTypeLoaderQmldirContent *qmldir, QList<QQmlError> *errors)
+{
+    Q_ASSERT(qmldir->hasContent());
+
+    qCDebug(lcQmlImport)
+            << "importExtensionAsync:" << qPrintable(m_base) << "loading" << qmldir->qmldirLocation();
+
+    if (designerSupportRequired && !qmldir->designerSupported()) {
+        if (errors) {
+            QQmlError error;
+            error.setDescription(
+                        QQmlImports::tr("module does not support the designer \"%1\"")
+                        .arg(qmldir->typeNamespace()));
+            error.setUrl(QUrl::fromLocalFile(qmldir->qmldirLocation()));
+            errors->prepend(error);
+        }
+        return nullptr;
+    }
+
+    if (qmldir->plugins().isEmpty())
+        return nullptr;  // No plugins to load
+
+    QQmlPluginImporter importer(uri, version, qmldir, typeLoader, errors);
+    return importer.importPluginsAsync();
 }
 
 void QQmlImports::registerBuiltinModuleTypes(
