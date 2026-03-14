@@ -549,6 +549,15 @@ bool QQmlTypeData::rebuildFromSource()
 
     continueLoadFromIR();
 
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+    // If there are outstanding async dependencies (e.g. remote qmldir fetches
+    // or async plugin loads), defer type resolution to allDependenciesDone().
+    // Resolving now would report "module not installed" for modules whose
+    // plugins are still being fetched over the network.
+    if (isWaiting())
+        return true;
+#endif
+
     if (!resolveTypes())
         return false;
 
@@ -997,18 +1006,29 @@ bool QQmlTypeData::resolveTypes()
 
     Q_ASSERT(!m_typesResolved);
 
+    qCDebug(lcQmlImport) << "resolveTypes: checking" << m_unresolvedImports.size()
+                         << "unresolved imports, status:" << status();
+
     // Check that all imports were resolved
     QList<QQmlError> errors;
     auto it = m_unresolvedImports.constBegin(), end = m_unresolvedImports.constEnd();
     for ( ; it != end; ++it) {
         const PendingImportPtr &import = *it;
-        if (import->priority != 0)
+        if (import->priority != 0) {
+            qCDebug(lcQmlImport) << "resolveTypes: skipping" << import->uri
+                                 << "priority:" << import->priority;
             continue;
+        }
 
         // If the import was potentially remote and all the network requests have failed,
         // we now know that there is no qmldir. We can register its types.
-        if (registerPendingTypes(import))
+        if (registerPendingTypes(import)) {
+            qCDebug(lcQmlImport) << "resolveTypes: pending types registered for" << import->uri;
             continue;
+        }
+
+        qCDebug(lcQmlImport) << "resolveTypes: UNRESOLVED" << import->uri
+                             << "flags:" << int(import->flags);
 
         // This import was not resolved
         QQmlError error;

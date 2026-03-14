@@ -1199,6 +1199,13 @@ static QTypeRevision finalizeLibraryImport(
             if (qmldir.hasTypeInfo())
                 return QQmlImports::validVersion(); // A pure C++ module without plugin
         }
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+        // On wasm with dynamic linking, plugins are loaded asynchronously via
+        // emscripten_dlopen. Types will be registered when the async load
+        // completes (blob dependency).
+        if (!qmldir.plugins().isEmpty())
+            return QQmlImports::validVersion(version);
+#endif
         errors->prepend(QQmlImports::moduleNotFoundError(uri, relevantVersion(uri, version)));
         return QTypeRevision();
     } else {

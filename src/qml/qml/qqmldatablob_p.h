@@ -163,6 +163,7 @@ protected:
 private:
     friend class QQmlTypeLoader;
     friend class QQmlTypeLoaderThread;
+    friend class QQmlPluginLoadBlob;
 
     void tryDone();
     void cancelAllWaitingFor();

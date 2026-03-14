@@ -479,6 +479,29 @@ QTypeRevision QQmlPluginImporter::importDynamicPlugin(
  */
 QString QQmlPluginImporter::resolvePlugin(const QString &qmldirPluginPath, const QString &baseName)
 {
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+    // On wasm with dynamic linking, plugins are fetched over HTTP by
+    // emscripten_dlopen. They don't exist in the virtual filesystem, so skip
+    // filesystem probing. Construct a path relative to a non-qrc import path
+    // so emscripten_dlopen can fetch the plugin from the HTTP server.
+    Q_UNUSED(qmldirPluginPath);
+    {
+        const QString pluginFileName = baseName + QLatin1String(".so");
+        const QString modulePath = QString(uri).replace(u'.', u'/');
+        const QStringList importPaths = typeLoader->importPathList();
+        for (const QString &importPath : importPaths) {
+            if (importPath.isEmpty()
+                || importPath.startsWith(u':')
+                || importPath.startsWith(QLatin1String("qrc:"))
+                || importPath.startsWith(u'/'))
+                continue; // Skip empty, qrc, and absolute paths — need relative HTTP path
+            return importPath + u'/' + modulePath + u'/' + pluginFileName;
+        }
+        // Fallback: bare filename
+        return pluginFileName;
+    }
+#endif
+
 #if defined(Q_OS_WIN)
     static const QString prefix;
     static const QStringList suffixes = {
@@ -594,7 +617,11 @@ QQmlRefPointer<QQmlPluginLoadBlob> QQmlPluginImporter::importPluginsAsync()
     const QString moduleId = canUseUris ? uri : qmldir->qmldirLocation();
 
     if (typeLoader->isModulePluginProcessingDone(moduleId)) {
-        // Already processed
+        // Already processed or in flight — return the pending blob (if any)
+        // so the caller can add a dependency on it
+        QQmlDataBlob *pending = typeLoader->pendingPluginLoadBlob(moduleId);
+        if (pending)
+            return static_cast<QQmlPluginLoadBlob *>(pending);
         return nullptr;
     }
 
@@ -620,6 +647,9 @@ QQmlRefPointer<QQmlPluginLoadBlob> QQmlPluginImporter::importPluginsAsync()
 
     // Mark module as being processed to prevent duplicate loading
     typeLoader->setModulePluginProcessingDone(moduleId);
+
+    // Store the blob so other importers of the same module can depend on it
+    typeLoader->setPendingPluginLoadBlob(moduleId, blob.data());
 
     // Start the async loading
     blob->startPluginLoad();

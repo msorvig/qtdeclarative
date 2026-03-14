@@ -78,6 +78,9 @@ void QQmlPluginLoadBlob::done()
     assertTypeLoaderThread();
     qCDebug(lcPluginLoadBlob) << "Plugin loading done for" << m_uri
                                << "version:" << m_importVersion;
+
+    // Clear the pending blob so future importers don't add stale dependencies
+    typeLoader()->clearPendingPluginLoadBlob(m_uri);
 }
 
 void QQmlPluginLoadBlob::loadNextPlugin()
@@ -115,6 +118,22 @@ void QQmlPluginLoadBlob::loadNextPlugin()
         return;
     }
 
+    qCDebug(lcPluginLoadBlob) << "loadNextPlugin: filePath=" << plugin.filePath
+                               << "pluginId=" << plugin.pluginId
+                               << "optional=" << plugin.optional
+                               << "QT_CONFIG(library)="
+#if QT_CONFIG(library)
+                               << true
+#else
+                               << false
+#endif
+                               << "QT_CONFIG(shared)="
+#if QT_CONFIG(shared)
+                               << true;
+#else
+                               << false;
+#endif
+
 #if QT_CONFIG(library)
     // Check if already loaded
     if (typeLoader()->isPluginInitialized(plugin.pluginId)) {
@@ -127,12 +146,22 @@ void QQmlPluginLoadBlob::loadNextPlugin()
 
     // Create the plugin loader
     const QFileInfo fileInfo(plugin.filePath);
-    plugin.loader = std::make_unique<QPluginLoader>(fileInfo.absoluteFilePath());
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+    // On wasm with dynamic linking, keep the path relative so
+    // emscripten_dlopen fetches it relative to the HTML file via HTTP, not
+    // as an absolute virtual FS path.
+    qCDebug(lcPluginLoadBlob) << "Using relative path for wasm dlopen:" << plugin.filePath;
+    m_currentLoader = std::make_unique<QPluginLoader>(plugin.filePath);
+#else
+    qCDebug(lcPluginLoadBlob) << "Using absolute path:" << fileInfo.absoluteFilePath();
+    m_currentLoader = std::make_unique<QPluginLoader>(fileInfo.absoluteFilePath());
+#endif
 
-    qCDebug(lcPluginLoadBlob) << "Starting async load of plugin:" << plugin.filePath;
+    qCDebug(lcPluginLoadBlob) << "Starting async load of plugin:" << plugin.filePath
+                               << "loader fileName:" << m_currentLoader->fileName();
 
     // Use loadAsync to load the plugin
-    QPluginLoader *loader = plugin.loader.get();
+    QPluginLoader *loader = m_currentLoader.get();
     const QString pluginId = plugin.pluginId;
     const QString pluginPath = fileInfo.absolutePath();
     const bool optional = plugin.optional;
@@ -140,22 +169,13 @@ void QQmlPluginLoadBlob::loadNextPlugin()
     // Prevent the blob from being deleted during async operation
     addref();
 
-    loader->loadAsync([this, pluginId, pluginPath, optional](bool success) {
-        // This callback may come on any thread - dispatch to type loader thread
-        if (QQmlTypeLoaderThread *thread = typeLoader()->thread()) {
-            thread->postMethodToThread(&QQmlTypeLoaderThread::loadThread,
-                QQmlDataBlob::Ptr(this));
-            // The actual completion handling happens in onPluginLoadComplete
-            // We need a way to pass success to it...
-            // For now, store it and call onPluginLoadComplete from loadThread callback
-        }
-
-        // For now, handle synchronously since the callback mechanism needs work
-        // The loadAsync will call back on the same thread for non-WASM platforms
+    loader->loadAsync([this](bool success) {
+        qCDebug(lcPluginLoadBlob) << "loadAsync callback: success=" << success;
         onPluginLoadComplete(success);
         release();
     });
 #else
+    qCDebug(lcPluginLoadBlob) << "No library support - skipping plugin";
     // No library support
     if (!plugin.optional) {
         QQmlError error;
@@ -177,10 +197,10 @@ void QQmlPluginLoadBlob::onPluginLoadComplete(bool success)
 
     if (!success) {
         qCDebug(lcPluginLoadBlob) << "Plugin load failed:" << plugin.filePath
-                                   << (plugin.loader ? plugin.loader->errorString() : QString());
+                                   << (m_currentLoader ? m_currentLoader->errorString() : QString());
         if (!plugin.optional) {
             QQmlError error;
-            error.setDescription(plugin.loader ? plugin.loader->errorString()
+            error.setDescription(m_currentLoader ? m_currentLoader->errorString()
                                                : QQmlImports::tr("plugin load failed"));
             setError(error);
             return;
@@ -191,7 +211,7 @@ void QQmlPluginLoadBlob::onPluginLoadComplete(bool success)
         qCDebug(lcPluginLoadBlob) << "Plugin loaded successfully:" << plugin.filePath;
 
 #if QT_CONFIG(library)
-        QObject *instance = plugin.loader->instance();
+        QObject *instance = m_currentLoader->instance();
         if (instance) {
             const QFileInfo fileInfo(plugin.filePath);
             registerPluginTypes(instance, fileInfo.absolutePath(), plugin.pluginId);
@@ -204,8 +224,11 @@ void QQmlPluginLoadBlob::onPluginLoadComplete(bool success)
     m_currentPluginIndex++;
     if (m_currentPluginIndex < m_plugins.size()) {
         loadNextPlugin();
+    } else {
+        // All plugins processed — transition out of Loading so tryDone() can complete
+        setStatus(QQmlDataBlob::ResolvingDependencies);
+        tryDone();
     }
-    // When all plugins are done, the blob will complete via tryDone()
 }
 
 void QQmlPluginLoadBlob::registerPluginTypes(QObject *instance, const QString &pluginPath,

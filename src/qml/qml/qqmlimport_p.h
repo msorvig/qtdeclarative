@@ -235,6 +235,9 @@ public:
                                          QQmlTypeLoaderQmldirContent *qmldir);
 
 private:
+    friend class QQmlPluginLoadBlob;
+    friend class QQmlTypeLoader;
+
     enum class IsLibrary : bool { No = false, Yes = true };
 
     static void insertImport(QQmlImportNamespace *nameSpace, QQmlImportInstance *import)

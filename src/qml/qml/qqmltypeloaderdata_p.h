@@ -92,6 +92,12 @@ public:
     // we have to keep track of this.
     QSet<QString> modulesForWhichPluginsHaveBeenProcessed;
 
+    // In-flight async plugin load blobs, keyed by module ID. Used so that
+    // multiple blobs importing the same module can depend on the same
+    // plugin load blob. Cleared when the plugin load completes.
+    // Raw pointers — the blobs are kept alive by their callers via addDependency.
+    QHash<QString, QQmlDataBlob *> pendingPluginLoadBlobs;
+
     // Plugins that have been initialized in the context of this engine. In theory, the same
     // plugin can be used for multiple modules. Therefore, we need to keep track of this
     // separately from modulesForWhichPluginsHaveBeenProcessed.

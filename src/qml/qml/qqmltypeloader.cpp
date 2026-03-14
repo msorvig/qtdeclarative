@@ -28,6 +28,10 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qdirlisting.h>
 #include <QtCore/qfile.h>
+
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+#include <emscripten.h>
+#endif
 #include <QtCore/qlibraryinfo.h>
 #include <QtCore/qthread.h>
 
@@ -579,8 +583,17 @@ void QQmlTypeLoader::addImportPath(const QString &path, AddPathMode mode)
         cPath.replace(QLatin1Char('\\'), QLatin1Char('/'));
     } else if (url.isRelative() ||
                (url.scheme().size() == 1 && QFile::exists(path)) ) {  // windows path
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+        // On wasm with dynamic linking, relative paths are HTTP-relative for
+        // fetching plugins via emscripten_dlopen. Don't canonicalize — the
+        // directory won't exist in the virtual filesystem, and
+        // canonicalPath() would return empty.
+        cPath = path;
+        cPath.replace(QLatin1Char('\\'), QLatin1Char('/'));
+#else
         QDir dir = QDir(path);
         cPath = dir.canonicalPath();
+#endif
     } else {
         cPath = path;
         cPath.replace(QLatin1Char('\\'), QLatin1Char('/'));
@@ -863,6 +876,23 @@ bool QQmlTypeLoader::Blob::handleLocalQmldirForImport(
         const PendingImportPtr &import, const QString &qmldirFilePath,
         const QString &qmldirUrl, QList<QQmlError> *errors)
 {
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+    // On wasm with dynamic linking, plugins (.so files) need to be fetched
+    // asynchronously via emscripten_dlopen before the sync import path can
+    // load them. Start async prefetch here; this marks the module as
+    // "processing done" so the sync addLibraryImport below won't try to load
+    // the plugin itself. The actual type registration happens when the blob
+    // dependency completes.
+    const QQmlTypeLoaderQmldirContent qmldirContent = typeLoader()->qmldirContent(qmldirFilePath);
+    if (qmldirContent.hasContent() && !qmldirContent.plugins().isEmpty()) {
+        QQmlRefPointer<QQmlPluginLoadBlob> pluginBlob = m_importCache->importExtensionAsync(
+                typeLoader(), import->uri, import->version, &qmldirContent, errors);
+        if (pluginBlob) {
+            addDependency(pluginBlob.data());
+        }
+    }
+#endif
+
     // This is a local library import
     const QTypeRevision actualVersion = m_importCache->addLibraryImport(
             typeLoader(), import->uri, import->qualifier, import->version, qmldirFilePath,
@@ -897,15 +927,32 @@ bool QQmlTypeLoader::Blob::updateQmldir(const QQmlRefPointer<QQmlQmldirData> &da
     // Try async plugin loading first
     const QQmlTypeLoaderQmldirContent qmldirContent = typeLoader()->qmldirContent(qmldirIdentifier);
     if (qmldirContent.hasContent() && !qmldirContent.plugins().isEmpty()) {
+        qCDebug(lcQmlImport) << "updateQmldir: starting async plugin load for" << import->uri
+                             << "status:" << status();
         QQmlRefPointer<QQmlPluginLoadBlob> pluginBlob = m_importCache->importExtensionAsync(
                 typeLoader(), import->uri, import->version, &qmldirContent, errors);
         if (pluginBlob) {
-            // Plugin loading started asynchronously - add as dependency
+            qCDebug(lcQmlImport) << "updateQmldir: adding plugin blob dependency for" << import->uri
+                                 << "pluginBlob status:" << pluginBlob->status();
             addDependency(pluginBlob.data());
-            // Continue with updateQmldirContent when plugin loading completes
-            // The plugin importer tracks what's loaded, so the sync call will be quick
+        } else {
+            qCDebug(lcQmlImport) << "updateQmldir: no plugin blob for" << import->uri
+                                 << "(already processed?)";
         }
     }
+
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+    // If async plugin loading was started, defer updateQmldirContent until
+    // the plugin blob completes. The sync importPlugins() path in
+    // updateQmldirContent cannot load plugins that are fetched over HTTP.
+    if (isWaiting()) {
+        qCDebug(lcQmlImport) << "updateQmldir: deferring updateQmldirContent for"
+                             << import->uri << "(async plugin loading in progress)";
+        import->priority = 0;
+        m_qmldirs << data;
+        return true;
+    }
+#endif
 
     const QTypeRevision version = m_importCache->updateQmldirContent(
             typeLoader(), import->uri, import->version, import->qualifier, qmldirIdentifier,
@@ -999,7 +1046,9 @@ bool QQmlTypeLoader::Blob::addLibraryImport(const QQmlTypeLoader::Blob::PendingI
     case QmldirFound:
         return true;
     case QmldirNotFound: {
+        qCDebug(lcQmlImport) << "addLibraryImport: QmldirNotFound for" << import->uri;
         if (!loadImportDependencies(import, QString(), import->flags, errors)) {
+            qCDebug(lcQmlImport) << "addLibraryImport: loadImportDependencies failed for" << import->uri;
             addDependencyImportError(import, errors);
             return false;
         }
@@ -1016,7 +1065,11 @@ bool QQmlTypeLoader::Blob::addLibraryImport(const QQmlTypeLoader::Blob::PendingI
     // TODO: This should trigger on any potentially remote URLs, not only intercepted ones.
     //       However, fixing this would open the door for follow-up problems while providing
     //       rather limited benefits.
-    if (qmldirResult != QmldirInterceptedToRemote && registerPendingTypes(import)) {
+    const bool pendingTypesRegistered = registerPendingTypes(import);
+    qCDebug(lcQmlImport) << "addLibraryImport:" << import->uri
+                         << "registerPendingTypes:" << pendingTypesRegistered
+                         << "qmldirResult:" << qmldirResult;
+    if (qmldirResult != QmldirInterceptedToRemote && pendingTypesRegistered) {
         if (m_importCache->addLibraryImport(
                 typeLoader(), import->uri, import->qualifier, import->version, QString(),
                 QString(), import->flags, import->precedence, errors).isValid()) {
@@ -1048,11 +1101,14 @@ bool QQmlTypeLoader::Blob::addLibraryImport(const QQmlTypeLoader::Blob::PendingI
     // Interceptor might redirect local paths.
     QStringList remotePathList = typeLoader()->importPathList(
             hasInterceptors ? LocalOrRemote : Remote);
+    qCDebug(lcQmlImport) << "addLibraryImport: remote paths for" << import->uri
+                         << ":" << remotePathList;
     if (!remotePathList.isEmpty()) {
         // Probe for all possible locations
         int priority = 0;
         const QStringList qmlDirPaths = QQmlImports::completeQmldirPaths(
                     import->uri, remotePathList, import->version);
+        qCDebug(lcQmlImport) << "addLibraryImport: qmldir probe paths:" << qmlDirPaths;
         for (const QString &qmldirPath : qmlDirPaths) {
             if (hasInterceptors) {
                 QUrl url = m_typeLoader->interceptUrl(
@@ -1121,6 +1177,10 @@ void QQmlTypeLoader::Blob::dependencyComplete(const QQmlDataBlob::Ptr &blob)
 {
     assertTypeLoaderThread();
 
+    qCDebug(lcQmlImport) << "dependencyComplete:" << blob->urlString()
+                         << "type:" << blob->type()
+                         << "stillWaiting:" << isWaiting();
+
     if (blob->type() == QQmlDataBlob::QmldirFile) {
         QQmlQmldirData *data = static_cast<QQmlQmldirData *>(blob.data());
         QList<QQmlError> errors;
@@ -1145,8 +1205,17 @@ bool QQmlTypeLoader::Blob::loadDependentImports(
     assertTypeLoaderThread();
 
     for (const auto &import : imports) {
-        if (import.flags & QQmlDirParser::Import::Optional)
+        if (import.flags & QQmlDirParser::Import::Optional) {
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+            // On wasm with dynamic linking, process "default import" directives
+            // (OptionalDefault). Plugins load asynchronously, so
+            // qmlRegisterModuleImport() runs too late for the normal implicit
+            // import mechanism. Instead, process the default style import
+            // directly from the qmldir.
+            if (!(import.flags & QQmlDirParser::Import::OptionalDefault))
+#endif
             continue;
+        }
         auto dependencyImport = std::make_shared<PendingImport>();
         dependencyImport->uri = import.module;
         dependencyImport->qualifier = qualifier;
@@ -1581,9 +1650,46 @@ QString QQmlTypeLoader::cleanFilePath(const QString &path) const
         return fileInfo.isFile() ? cleanPath : QString();
     }
 
-    return fileExists(cleanPath)
-            ? cleanPath
-            : QString();
+    if (fileExists(cleanPath))
+        return cleanPath;
+
+#if defined(Q_OS_WASM) && QT_CONFIG(shared)
+    // On wasm with dynamic linking, qmldir files for sub-modules (e.g.
+    // QtQuick.Controls.Basic) may not exist in the virtual filesystem but are
+    // available on the HTTP server. Fetch them on demand and cache in the
+    // virtual FS so the engine can discover which plugins to load
+    // asynchronously.
+    if (!cleanPath.startsWith(QLatin1Char('/'))
+            && cleanPath.endsWith(QLatin1String("/qmldir"))) {
+        const QByteArray pathUtf8 = cleanPath.toUtf8();
+        int ok = EM_ASM_INT({
+            var path = UTF8ToString($0);
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", path, false);
+                xhr.responseType = "arraybuffer";
+                xhr.send();
+                if (xhr.status === 200) {
+                    var data = new Uint8Array(xhr.response);
+                    var dir = path.substring(0, path.lastIndexOf("/"));
+                    var parts = dir.split("/");
+                    var current = "";
+                    for (var i = 0; i < parts.length; i++) {
+                        current += (current ? "/" : "") + parts[i];
+                        try { FS.mkdir(current); } catch(e) {}
+                    }
+                    FS.writeFile(path, data);
+                    return 1;
+                }
+            } catch(e) {}
+            return 0;
+        }, pathUtf8.constData());
+        if (ok && fileExists(cleanPath))
+            return cleanPath;
+    }
+#endif
+
+    return QString();
 }
 
 static QString stripTrailingSlashes(const QString &path)

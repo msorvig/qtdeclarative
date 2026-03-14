@@ -286,6 +286,24 @@ public:
         return data->modulesForWhichPluginsHaveBeenProcessed.contains(module);
     }
 
+    QQmlDataBlob *pendingPluginLoadBlob(const QString &module)
+    {
+        QQmlTypeLoaderThreadDataConstPtr data(&m_data);
+        return data->pendingPluginLoadBlobs.value(module, nullptr);
+    }
+
+    void setPendingPluginLoadBlob(const QString &module, QQmlDataBlob *blob)
+    {
+        QQmlTypeLoaderThreadDataPtr data(&m_data);
+        data->pendingPluginLoadBlobs.insert(module, blob);
+    }
+
+    void clearPendingPluginLoadBlob(const QString &module)
+    {
+        QQmlTypeLoaderThreadDataPtr data(&m_data);
+        data->pendingPluginLoadBlobs.remove(module);
+    }
+
 #if QT_CONFIG(qml_network)
     QQmlNetworkAccessManagerFactoryPtrConst networkAccessManagerFactory() const;
     void setNetworkAccessManagerFactory(QQmlNetworkAccessManagerFactory *factory);
@@ -304,6 +322,7 @@ private:
     friend struct StaticLoader;
 
     friend class QQmlDataBlob;
+    friend class QQmlPluginLoadBlob;
     friend class QQmlTypeLoaderThread;
 #if QT_CONFIG(qml_network)
     friend class QQmlTypeLoaderNetworkReplyProxy;

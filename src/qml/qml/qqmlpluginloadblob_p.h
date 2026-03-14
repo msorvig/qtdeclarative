@@ -52,7 +52,6 @@ private:
         QString filePath;
         QString pluginId;
         bool optional = false;
-        std::unique_ptr<QPluginLoader> loader;
     };
 
     void loadNextPlugin();
@@ -61,6 +60,7 @@ private:
     void finalizePlugin(QObject *instance, const QString &pluginId);
 
     QList<PendingPlugin> m_plugins;
+    std::unique_ptr<QPluginLoader> m_currentLoader;
     int m_currentPluginIndex = 0;
     bool m_loadingStarted = false;
 
