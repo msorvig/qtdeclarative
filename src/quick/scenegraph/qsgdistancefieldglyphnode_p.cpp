@@ -196,7 +196,14 @@ bool QSGDistanceFieldTextMaterial::updateTextureSize()
     if (!m_texture)
         m_texture = m_glyph_cache->glyphTexture(0); // invalid texture
 
-    if (m_texture->size != m_size) {
+    // Detect size changes AND underlying QRhiTexture pointer changes.
+    // The cache may swap the underlying texture (via resize) without the
+    // TextureInfo pointer changing. Missing that leaves the wrapper and the
+    // downstream SRB holding a dangling pointer after the old texture is
+    // deferred-released.
+    if (m_texture->size != m_size
+        || !m_sgTexture
+        || m_sgTexture->rhiTexture() != m_texture->texture) {
         m_size = m_texture->size;
         return true;
     }

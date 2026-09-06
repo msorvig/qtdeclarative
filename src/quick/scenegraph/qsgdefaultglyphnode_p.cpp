@@ -562,12 +562,19 @@ bool QSGTextMaskMaterial::ensureUpToDate()
 {
     QSGRhiTextureGlyphCache *gc = rhiGlyphCache();
     QSize glyphCacheSize(gc->width(), gc->height());
-    if (glyphCacheSize != m_size) {
+    QRhiTexture *gcRhi = gc->texture();
+    // Rebuild the wrapper if either the cache dimensions changed or the
+    // underlying QRhiTexture has been swapped (e.g. after a deferred
+    // release + re-create in resizeTextureData). Missing the pointer
+    // change leaves an SRB somewhere holding a dangling QRhiTexture*.
+    if (glyphCacheSize != m_size
+        || !m_texture
+        || m_texture->rhiTexture() != gcRhi) {
         if (m_texture)
             delete m_texture;
         m_texture = new QSGPlainTexture;
-        m_texture->setTexture(gc->texture());
-        m_texture->setTextureSize(QSize(gc->width(), gc->height()));
+        m_texture->setTexture(gcRhi);
+        m_texture->setTextureSize(glyphCacheSize);
         m_texture->setOwnsTexture(false);
         m_size = glyphCacheSize;
         return true;
