@@ -102,20 +102,24 @@ void QSGDefaultContext::renderContextInitialized(QSGRenderContext *renderContext
             m_antialiasingMethod = rc->msaaSampleCount() > 1 ? MsaaAntialiasing : VertexAntialiasing;
     }
 
-#if QT_CONFIG(opengl)
     // With OpenGL ES, use GrayAntialiasing, unless
     // some value had been requested explicitly. This could not be decided
     // before without a context. Now the context is ready.
+    // On wasm use it with any backend: the browser composites and scales the
+    // canvas, which subpixel antialiasing cannot account for.
     if (!m_distanceFieldAntialiasingDecided) {
         m_distanceFieldAntialiasingDecided = true;
         Q_ASSERT(rc->rhi());
+#if defined(Q_OS_WASM)
+        m_distanceFieldAntialiasing = QSGGlyphNode::GrayAntialiasing;
+#elif QT_CONFIG(opengl)
         if (rc->rhi()->backend() == QRhi::OpenGLES2
                 && static_cast<const QRhiGles2NativeHandles *>(rc->rhi()->nativeHandles())->context->isOpenGLES())
         {
             m_distanceFieldAntialiasing = QSGGlyphNode::GrayAntialiasing;
         }
-    }
 #endif
+    }
 
     m_mutex.unlock();
 }
