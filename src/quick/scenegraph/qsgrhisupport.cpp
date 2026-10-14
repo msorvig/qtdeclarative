@@ -1352,17 +1352,30 @@ QImage QSGRhiSupport::grabAndBlockInCurrentFrame(QRhi *rhi, QRhiCommandBuffer *c
     cb->resourceUpdate(resourceUpdates);
     rhi->finish(); // make sure the readback has finished, stall the pipeline if needed
 
-    // May be RGBA or BGRA. Plus premultiplied alpha.
+    // May be RGBA or BGRA, or a float / 10-bit format for HDR swapchains and
+    // textures. Plus premultiplied alpha.
     QImage::Format imageFormat;
-    if (result.format == QRhiTexture::BGRA8) {
+    switch (result.format) {
+    case QRhiTexture::BGRA8:
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
         imageFormat = QImage::Format_ARGB32_Premultiplied;
 #else
         imageFormat = QImage::Format_RGBA8888_Premultiplied;
         // ### and should swap too
 #endif
-    } else {
+        break;
+    case QRhiTexture::RGBA16F:
+        imageFormat = QImage::Format_RGBA16FPx4_Premultiplied;
+        break;
+    case QRhiTexture::RGBA32F:
+        imageFormat = QImage::Format_RGBA32FPx4_Premultiplied;
+        break;
+    case QRhiTexture::RGB10A2:
+        imageFormat = QImage::Format_A2BGR30_Premultiplied;
+        break;
+    default:
         imageFormat = QImage::Format_RGBA8888_Premultiplied;
+        break;
     }
 
     const uchar *p = reinterpret_cast<const uchar *>(result.data.constData());
