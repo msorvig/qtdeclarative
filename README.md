@@ -1,3 +1,26 @@
+qtdeclarative (msorvig fork)
+============================
+
+This is a patched fork of qtdeclarative.
+
+Branches named `<qt-branch>-<patch-set>` carry a single patch set on top of the
+corresponding upstream branch. Combined patch sets are merged to the plain Qt
+branch name (`dev`).
+
+wasm-dynlnk
+-----------
+
+WebAssembly dynamic linking: discover and load QML module plugins on demand over
+HTTP instead of preloading every plugin at startup. Requires the companion
+qtbase patches on the branch of the same name.
+
+Branches: `dev-wasm-dynlnk`
+
+- QML: Use QPluginLoader::loadAsync for async plugin loading
+- wasm: Enable on-demand async QML plugin loading via emscripten_dlopen
+
+---
+
 qtdeclarative
 =============
 
