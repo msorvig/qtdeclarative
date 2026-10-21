@@ -39,6 +39,7 @@ qt_internal_add_qml_module(QuickControls2ImagineStyleImpl
 )
 
 qt_internal_add_shaders(QuickControls2ImagineStyleImpl "qtquickcontrols2imaginestyleimplplugin_shaders"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE

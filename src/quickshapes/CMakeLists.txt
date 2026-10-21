@@ -39,6 +39,7 @@ qt_internal_extend_target(qmlshapesplugin
 )
 
 qt_internal_add_shaders(QuickShapes "qtquickshapes_shaders"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE

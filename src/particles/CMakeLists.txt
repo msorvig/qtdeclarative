@@ -92,6 +92,7 @@ qt_internal_add_shaders(QuickParticles "particles_shaders1"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    NOWGSL
     GLSL
         "150,120,100es,300es"
     PREFIX
@@ -112,6 +113,7 @@ qt_internal_add_shaders(QuickParticles "particles_shaders2"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    NOWGSL
     GLSL
         "150,120,100es,300es"
     PREFIX
@@ -128,6 +130,7 @@ qt_internal_add_shaders(QuickParticles "particles_shaders2"
 )
 
 qt_internal_add_shaders(QuickParticles "particles_shaders3"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -148,6 +151,7 @@ qt_internal_add_shaders(QuickParticles "particles_shaders3"
 )
 
 qt_internal_add_shaders(QuickParticles "particles_shaders4"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -168,6 +172,7 @@ qt_internal_add_shaders(QuickParticles "particles_shaders4"
 )
 
 qt_internal_add_shaders(QuickParticles "particles_shaders5"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -190,6 +195,7 @@ qt_internal_add_shaders(QuickParticles "particles_shaders5"
 )
 
 qt_internal_add_shaders(QuickParticles "particles_shaders6"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE

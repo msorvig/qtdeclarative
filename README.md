@@ -19,6 +19,21 @@ Branches: `dev-wasm-dynlnk`
 - QML: Use QPluginLoader::loadAsync for async plugin loading
 - wasm: Enable on-demand async QML plugin loading via emscripten_dlopen
 
+wasm-webgpu
+-----------
+
+Qt Quick on the WebGPU RHI backend: the WebGPU graphics API enumerator, the
+scenegraph wiring that selects it, and WGSL variants of the scenegraph shaders.
+Requires the companion qtbase and qtshadertools patches on the branch of the
+same name.
+
+Branches: `dev-wasm-webgpu`
+
+- Qt Quick: refresh glyph cache texture wrapper when it is swapped
+- Qt Quick: default to gray distance field antialiasing on wasm
+- Qt Quick: add WebGPU backend support
+- Quick: grab float and 10-bit swapchains and textures into matching QImages
+
 ---
 
 qtdeclarative

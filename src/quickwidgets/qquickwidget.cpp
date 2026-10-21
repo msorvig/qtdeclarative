@@ -1128,6 +1128,8 @@ static inline QPlatformBackingStoreRhiConfig::Api graphicsApiToBackingStoreRhiAp
         return QPlatformBackingStoreRhiConfig::D3D12;
     case QSGRendererInterface::Metal:
         return QPlatformBackingStoreRhiConfig::Metal;
+    case QSGRendererInterface::WebGPU:
+        return QPlatformBackingStoreRhiConfig::WebGPU;
     default:
         return QPlatformBackingStoreRhiConfig::Null;
     }

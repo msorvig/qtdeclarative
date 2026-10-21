@@ -24,6 +24,7 @@ public:
         Metal,
         Null,
         Direct3D12,
+        WebGPU,
 
         OpenGLRhi = OpenGL,
         Direct3D11Rhi = Direct3D11,

@@ -65,6 +65,7 @@ set(EFFECT_SHADER_ARGS
 )
 
 qt_internal_add_shaders(QuickEffects "rectangularshadow_shaders1"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     BATCHABLE
     FILES
@@ -74,6 +75,7 @@ qt_internal_add_shaders(QuickEffects "rectangularshadow_shaders1"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders1"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     BATCHABLE
     FILES
@@ -89,6 +91,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders1"
 # [n] = Amount of blur items used
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders2"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     BATCHABLE
     FILES
@@ -98,6 +101,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders2"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders3"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     BATCHABLE
     FILES
@@ -109,6 +113,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders3"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders4"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -117,6 +122,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders4"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders5"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -128,6 +134,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders5"
 
 # Special shaders for non-blurred shadows (cs0 and cms0)
 qt_internal_add_shaders(QuickEffects "multieffect_shaders6"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -139,6 +146,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders6"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders7"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -152,6 +160,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders7"
 
 # Shaders for different blur levels
 qt_internal_add_shaders(QuickEffects "multieffect_shaders8"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -163,6 +172,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders8"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders9"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -174,6 +184,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders9"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders10"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -186,6 +197,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders10"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders11"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -198,6 +210,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders11"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders12"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -210,6 +223,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders12"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders13"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -224,6 +238,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders13"
 
 # level 2
 qt_internal_add_shaders(QuickEffects "multieffect_shaders14"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -236,6 +251,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders14"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders15"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -248,6 +264,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders15"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders16"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -261,6 +278,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders16"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders17"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -274,6 +292,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders17"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders18"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -287,6 +306,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders18"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders19"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -302,6 +322,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders19"
 
 # level 3
 qt_internal_add_shaders(QuickEffects "multieffect_shaders20"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -315,6 +336,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders20"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders21"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -328,6 +350,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders21"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders22"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -342,6 +365,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders22"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders23"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -356,6 +380,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders23"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders24"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"
@@ -370,6 +395,7 @@ qt_internal_add_shaders(QuickEffects "multieffect_shaders24"
 )
 
 qt_internal_add_shaders(QuickEffects "multieffect_shaders25"
+    WGSL 100
     ${EFFECT_SHADER_ARGS}
     FILES
         "data/shaders/multieffect.frag"

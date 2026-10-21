@@ -245,6 +245,7 @@ bool QSGRendererInterface::isApiRhiBased(GraphicsApi api)
     case Vulkan:
     case Metal:
     case Null:
+    case WebGPU:
         return true;
     default:
         return false;
