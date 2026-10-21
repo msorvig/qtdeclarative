@@ -288,6 +288,7 @@ qt_internal_add_resource(QuickDialogs2QuickImpl "QuickDialogs2QuickImpl"
 )
 
 qt_internal_add_shaders(QuickDialogs2QuickImpl "QuickDialogs2QuickImplShaders"
+    WGSL 100
     BATCHABLE
     PRECOMPILE
     OPTIMIZED

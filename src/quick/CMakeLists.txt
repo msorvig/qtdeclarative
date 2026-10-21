@@ -267,6 +267,7 @@ qt_internal_add_shaders(Quick "scenegraph_shaders"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     PREFIX
         "/qt-project.org"
     FILES
@@ -331,6 +332,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     PREFIX
         "/qt-project.org"
     FILES
@@ -348,6 +350,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_derivatives"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES "USE_DERIVATIVES"
     PREFIX
         "/qt-project.org"
@@ -369,6 +372,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_expanding"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES "STROKE_EXPANDING"
     PREFIX
         "/qt-project.org"
@@ -384,6 +388,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_lg_expanding"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES "STROKE_EXPANDING" "LINEARGRADIENT"
     PREFIX
         "/qt-project.org"
@@ -399,6 +404,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_rg_expanding"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES "STROKE_EXPANDING" "RADIALGRADIENT"
     PREFIX
         "/qt-project.org"
@@ -414,6 +420,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_cg_expanding"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES "STROKE_EXPANDING" "CONICALGRADIENT"
     PREFIX
         "/qt-project.org"
@@ -429,6 +436,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_lg"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "LINEARGRADIENT"
     PREFIX
@@ -451,6 +459,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_lg_derivatives"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "LINEARGRADIENT"
         "USE_DERIVATIVES"
@@ -472,6 +481,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_rg"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "RADIALGRADIENT"
     PREFIX
@@ -494,6 +504,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_rg_derivatives"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "RADIALGRADIENT"
         "USE_DERIVATIVES"
@@ -515,6 +526,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_cg"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "CONICALGRADIENT"
     PREFIX
@@ -537,6 +549,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_cg_derivatives"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "CONICALGRADIENT"
         "USE_DERIVATIVES"
@@ -558,6 +571,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_tf"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "TEXTUREFILL"
     PREFIX
@@ -576,6 +590,7 @@ qt_internal_add_shaders(Quick "scenegraph_curve_shaders_tf_derivatives"
     PRECOMPILE
     OPTIMIZED
     MULTIVIEW
+    WGSL 100
     DEFINES
         "TEXTUREFILL"
         "USE_DERIVATIVES"

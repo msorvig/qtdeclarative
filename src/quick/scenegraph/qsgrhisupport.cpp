@@ -91,6 +91,8 @@ void QSGRhiSupport::applySettings()
             m_rhiBackend = QRhi::Vulkan;
         } else if (rhiBackend == QByteArrayLiteral("metal")) {
             m_rhiBackend = QRhi::Metal;
+        } else if (rhiBackend == QByteArrayLiteral("webgpu")) {
+            m_rhiBackend = QRhi::WebGPU;
         } else if (rhiBackend == QByteArrayLiteral("null")) {
             m_rhiBackend = QRhi::Null;
         } else {
@@ -685,6 +687,8 @@ QSGRendererInterface::GraphicsApi QSGRhiSupport::graphicsApi() const
         return QSGRendererInterface::Direct3D12;
     case QRhi::Metal:
         return QSGRendererInterface::Metal;
+    case QRhi::WebGPU:
+        return QSGRendererInterface::WebGPU;
     default:
         return QSGRendererInterface::Unknown;
     }
@@ -702,6 +706,17 @@ QSurface::SurfaceType QSGRhiSupport::windowSurfaceType() const
         return QSurface::Direct3DSurface;
     case QRhi::Metal:
         return QSurface::MetalSurface;
+    case QRhi::WebGPU:
+        // Native Dawn creates its surface from the platform window: a
+        // CAMetalLayer on Apple platforms, an HWND for DXGI on Windows. On
+        // wasm the canvas is set up for any surface type.
+#if defined(Q_OS_APPLE)
+        return QSurface::MetalSurface;
+#elif defined(Q_OS_WIN)
+        return QSurface::Direct3DSurface;
+#else
+        return QSurface::OpenGLSurface;
+#endif
     default:
         return QSurface::OpenGLSurface;
     }
@@ -1299,6 +1314,10 @@ QSGRhiSupport::RhiCreateResult QSGRhiSupport::createRhi(QQuickWindow *window, QS
         }
     }
 #endif
+    if (backend == QRhi::WebGPU) {
+        QRhiWebGPUInitParams rhiParams;
+        rhi = QRhi::create(backend, &rhiParams, flags, nullptr, rhiAdapter);
+    }
 
     if (rhi) {
         qCDebug(QSG_LOG_INFO, "Created QRhi %p for window %p", rhi, window);

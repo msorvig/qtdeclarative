@@ -181,6 +181,7 @@ qt_internal_add_resource(QuickControls2Material "qtquickcontrols2materialstyle"
 )
 
 qt_internal_add_shaders(QuickControls2Material "qtquickcontrols2materialstyle_shaders"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE

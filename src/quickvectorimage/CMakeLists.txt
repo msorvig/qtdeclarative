@@ -73,6 +73,7 @@ qt_internal_add_qml_module(QuickVectorImage
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -87,6 +88,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders"
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_over"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -103,6 +105,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_over"
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_in"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -119,6 +122,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_in"
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_out"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -135,6 +139,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_out"
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_atop"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -151,6 +156,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_atop"
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_xor"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -167,6 +173,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_xor"
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_lighter"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -183,6 +190,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_lighte
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_arithmetic"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -199,6 +207,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_comp_arithm
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_normal"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -215,6 +224,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_norma
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_multiply"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -231,6 +241,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_multi
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_screen"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -247,6 +258,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_scree
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_lighten"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -263,6 +275,7 @@ qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_light
 )
 
 qt_internal_add_shaders(QuickVectorImageHelpers "vectorimage_shaders_blend_darken"
+    WGSL 100
     SILENT
     BATCHABLE
     PRECOMPILE
